@@ -1,14 +1,14 @@
 #include "databasequeryairports.h"
 
-DatabaseQueryAirports::DatabaseQueryAirports(QObject* parent)
-    : DatabaseQuery{parent} {
+DatabaseQueryAirports::DatabaseQueryAirports(QSqlQuery* sqlQuery, QObject* parent)
+    : DatabaseQuery{sqlQuery, parent} {
 }
 
 DatabaseQueryAirports::~DatabaseQueryAirports() {
 
 }
 
-void DatabaseQueryAirports::setListAirports(QSqlQuery *sqlQuery) {
+void DatabaseQueryAirports::setListAirports() {
 
     //auto funList = QtConcurrent::run([&] () {
 

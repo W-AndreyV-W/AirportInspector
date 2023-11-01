@@ -49,7 +49,6 @@ private slots:
     void on_pb_October_clicked();
     void on_pb_November_clicked();
     void on_pb_December_clicked();
-
     void on_pb_Close_clicked();
 
 private:
@@ -65,6 +64,8 @@ private:
 
     void printmonth(qint32 num);
     void switch_month(qint32 num);
+    void pushButtonFalse();
+    void closeEvent (QCloseEvent *event) override;
 };
 
 #endif // WORKLOADSCHEDULE_H

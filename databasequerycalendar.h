@@ -9,11 +9,11 @@ class DatabaseQueryCalendar : public DatabaseQuery {
 
 public:
 
-    DatabaseQueryCalendar(QObject* parent);
+    DatabaseQueryCalendar(QSqlQuery* sqlQuery, QObject* parent);
     ~DatabaseQueryCalendar();
 
     void setData(QString _airport_code);
-    void run(QSqlQuery* sqlQuery) override;
+    void run() override;
 
 signals:
 

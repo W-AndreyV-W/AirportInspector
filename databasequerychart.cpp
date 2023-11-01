@@ -1,7 +1,7 @@
 #include "databasequerychart.h"
 
-DatabaseQueryChart::DatabaseQueryChart(QObject* parent)
-    : DatabaseQuery{parent} {
+DatabaseQueryChart::DatabaseQueryChart(QSqlQuery* sqlQuery, QObject* parent)
+    : DatabaseQuery{sqlQuery, parent} {
 
 }
 
@@ -18,7 +18,7 @@ void DatabaseQueryChart::setData(QDate _begin_date, QDate _end_date, QString _ai
     end_date = _end_date;
 }
 
-void DatabaseQueryChart::run(QSqlQuery *sqlQuery) {
+void DatabaseQueryChart::run() {
 
     mutex.lock();
 

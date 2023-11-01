@@ -9,11 +9,11 @@ class DatabaseQueryChart : public DatabaseQuery {
 
 public:
 
-    DatabaseQueryChart(QObject* parent);
+    DatabaseQueryChart(QSqlQuery* sqlQuery, QObject* parent);
     ~DatabaseQueryChart();
 
     void setData(QDate _begin_date, QDate _end_date, QString _airport_cod);
-    void run(QSqlQuery* sqlQuery) override;
+    void run() override;
 
 signals:
 

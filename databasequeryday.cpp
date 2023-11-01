@@ -1,7 +1,7 @@
 #include "databasequeryday.h"
 
-DatabaseQueryDay::DatabaseQueryDay(QObject* parent)
-    : DatabaseQuery{parent} {
+DatabaseQueryDay::DatabaseQueryDay(QSqlQuery* sqlQuery, QObject* parent)
+    : DatabaseQuery{sqlQuery, parent} {
 
 }
 
@@ -17,7 +17,7 @@ void DatabaseQueryDay::setData(QDate _date, QString _airport_code) {
     airport_code = _airport_code;
 }
 
-void DatabaseQueryDay::run(QSqlQuery *sqlQuery) {
+void DatabaseQueryDay::run() {
 
     mutex.lock();
 

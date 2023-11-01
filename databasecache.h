@@ -12,7 +12,7 @@
 #include <QMutexLocker>
 #include <QtConcurrent>
 
-#define CACHE_SIZE 52
+#define CACHE_SIZE 130
 #define SET_COLUMN_DAY 3
 
 enum fieldsForScoreboardCache{

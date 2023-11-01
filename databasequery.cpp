@@ -1,10 +1,10 @@
 #include "databasequery.h"
 
-DatabaseQuery::DatabaseQuery(QObject* parent)
+DatabaseQuery::DatabaseQuery(QSqlQuery* _sqlQuery, QObject* parent)
     : QObject{parent}
 {
 
-    //sqlQuery = &_sqlQuery;
+    sqlQuery = _sqlQuery;
 
 }
 
@@ -12,6 +12,6 @@ DatabaseQuery::~DatabaseQuery() {
 
 }
 
-void DatabaseQuery::run(QSqlQuery *sqlQuery) {
+void DatabaseQuery::run() {
 
 }

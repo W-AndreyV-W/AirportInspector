@@ -1,7 +1,7 @@
 #include "databasequerycalendar.h"
 
-DatabaseQueryCalendar::DatabaseQueryCalendar(QObject* parent)
-    : DatabaseQuery{parent} {
+DatabaseQueryCalendar::DatabaseQueryCalendar(QSqlQuery* sqlQuery, QObject* parent)
+    : DatabaseQuery{sqlQuery, parent} {
 
     ;
 }
@@ -17,7 +17,7 @@ void DatabaseQueryCalendar::setData(QString _airport_code) {
     airport_code =_airport_code;
 }
 
-void DatabaseQueryCalendar::run(QSqlQuery *sqlQuery) {
+void DatabaseQueryCalendar::run() {
 
     mutex.lock();
 

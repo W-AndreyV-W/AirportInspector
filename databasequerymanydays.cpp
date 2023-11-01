@@ -1,7 +1,7 @@
 #include "databasequerymanydays.h"
 
-DatabaseQueryManydays::DatabaseQueryManydays(QObject* parent)
-    : DatabaseQuery{parent} {
+DatabaseQueryManydays::DatabaseQueryManydays(QSqlQuery* sqlQuery, QObject* parent)
+    : DatabaseQuery{sqlQuery, parent} {
 
 
 }
@@ -19,7 +19,7 @@ void DatabaseQueryManydays::setData(QDate _begin_date, QDate _end_date, QString 
     end_date = _end_date;
 }
 
-void DatabaseQueryManydays::run(QSqlQuery *sqlQuery) {
+void DatabaseQueryManydays::run() {
 
     mutex.lock();
 

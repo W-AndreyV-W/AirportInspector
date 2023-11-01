@@ -9,11 +9,11 @@ class DatabaseQueryManydays : public DatabaseQuery {
 
 public:
 
-    DatabaseQueryManydays(QObject* parent);
+    DatabaseQueryManydays(QSqlQuery* sqlQuery, QObject* parent);
     ~DatabaseQueryManydays();
 
     void setData(QDate _begin_date, QDate _end_date, QString _airport_cod);
-    void run(QSqlQuery* sqlQuery) override;
+    void run() override;
 
 signals:
 

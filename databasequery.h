@@ -56,14 +56,14 @@ class DatabaseQuery : public QObject {
 
 public:
 
-    explicit DatabaseQuery(QObject* parent = nullptr);
+    explicit DatabaseQuery(QSqlQuery* _sqlQuery, QObject* parent = nullptr);
     ~DatabaseQuery();
 
-    virtual void run(QSqlQuery* sqlQuery);
+    virtual void run();
 
 protected:
 
-    //QSqlQuery* sqlQuery;
+    QSqlQuery* sqlQuery;
     QMutex mutex;
 };
 

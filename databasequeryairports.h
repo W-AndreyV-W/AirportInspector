@@ -9,10 +9,10 @@ class DatabaseQueryAirports : public DatabaseQuery {
 
 public:
 
-    explicit DatabaseQueryAirports(QObject* parent);
+    explicit DatabaseQueryAirports(QSqlQuery* sqlQuery, QObject* parent);
     ~DatabaseQueryAirports();
 
-    void setListAirports(QSqlQuery* sqlQuery);
+    void setListAirports();
 
 signals:
 
