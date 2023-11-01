@@ -17,7 +17,7 @@ public:
 
 signals:
 
-    void sig_ScoreboardDay(QVector<QVector<QVector<QString>>> day_scoreboard);
+    void sig_ChartWorkload(QString airport,  QDate date_scoreboard, QVector<QDate> chart_workload);
 
 private:
 
@@ -25,24 +25,41 @@ private:
     QDate end_date;
     QString airport_code;
 
-    QString select_scoreboard_year = "SELECT count(flight_no), date_trunc('month', scheduled_departure) AS month"
-                                      " FROM bookings.flights f"
-                                      " WHERE (scheduled_departure::date => date(";
-    QString select_scoreboard_year_2 = " AND scheduled_departure::date <= date(";
-    QString select_scoreboard_year_3 = ")) AND (departure_airport = ";
-    QString select_scoreboard_year_4 = " OR arrival_airport = ";
-    QString select_scoreboard_year_5 = ") GROUP BY month";
+//    QString select_scoreboard_year = "SELECT flight_no, scheduled_departure"
+//                                      " FROM bookings.flights"
+//                                      " WHERE (scheduled_departure::date => date(";
+//    QString select_scoreboard_year_2 = ") AND scheduled_departure::date <= date(";
+//    QString select_scoreboard_year_3 = ")) AND (departure_airport = ";
+//    QString select_scoreboard_year_4 = " OR arrival_airport = ";
+//    QString select_scoreboard_year_5 = ")";
 
-    QString select_scoreboard_month = "SELECT count(flight_no), date_trunc('day', scheduled_departure) AS day"
-                                      " FROM bookings.flights f"
-                                      " WHERE (scheduled_departure::date => date(";
-    QString select_scoreboard_month_2 = " AND scheduled_departure::date <= date(";
-    QString select_scoreboard_month_3 = ")) AND (departure_airport = ";
-    QString select_scoreboard_month_4 = " OR arrival_airport = ";
-    QString select_scoreboard_month_5 = ") GROUP BY day";
+//    QString select_scoreboard_year = "SELECT flight_no, scheduled_departure"
+//                                      " FROM bookings.flights"
+//                                      " WHERE (departure_airport = ";
+//    QString select_scoreboard_year_2 = " AND arrival_airport = ";
+//    QString select_scoreboard_year_3 = ") AND (scheduled_departure::date >= date(";
+//    QString select_scoreboard_year_4 =  ") AND scheduled_departure::date < date(";
+//    QString select_scoreboard_year_5 = ")) ORDER BY scheduled_departure ASC";
 
 
-    void convertArray(QSqlQuery* sqlQuery, QVector<QVector<QVector<QString>>>& scoreboard, qint8 index);
+    QString select_chart_workload = "SELECT scheduled_departure::date"
+                                      " FROM bookings.flights"
+                                      " WHERE (departure_airport = ";
+    QString select_chart_workload_2 = " OR arrival_airport = ";
+    QString select_chart_workload_3 = ") AND (scheduled_departure::date >= date(";
+    QString select_chart_workload_4 =  ") AND scheduled_departure::date <= date(";
+    QString select_chart_workload_5 = ")) ORDER BY scheduled_departure ASC";
+
+//    QString select_scoreboard_month = "SELECT count(flight_no), date_trunc('day', scheduled_departure) AS day"
+//                                      " FROM bookings.flights"
+//                                      " WHERE (scheduled_departure::date => date(";
+//    QString select_scoreboard_month_2 = ") AND scheduled_departure::date <= date(";
+//    QString select_scoreboard_month_3 = ")) AND (departure_airport = ";
+//    QString select_scoreboard_month_4 = " OR arrival_airport = ";
+//    QString select_scoreboard_month_5 = ") GROUP BY day"
+//                                        " ORDER BY day ASC";
+
+    void convertArray(QSqlQuery* sqlQuery, QVector<QDate>& scoreboard);
 };
 
 #endif // DATABASEQUERYCHART_H

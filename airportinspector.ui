@@ -6,106 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>674</width>
-    <height>716</height>
+    <width>656</width>
+    <height>787</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Инспектор аэропортов</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <item>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="3" column="2">
-       <widget class="QFrame" name="fm_Selection">
-        <property name="minimumSize">
-         <size>
-          <width>300</width>
-          <height>213</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>300</width>
-          <height>213</height>
-         </size>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <widget class="QCalendarWidget" name="calendarWidget">
-           <property name="minimumSize">
-            <size>
-             <width>280</width>
-             <height>163</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>280</width>
-             <height>163</height>
-            </size>
-           </property>
-           <property name="mouseTracking">
-            <bool>true</bool>
-           </property>
-           <property name="tabletTracking">
-            <bool>true</bool>
-           </property>
-           <property name="gridVisible">
-            <bool>true</bool>
-           </property>
-           <property name="horizontalHeaderFormat">
-            <enum>QCalendarWidget::ShortDayNames</enum>
-           </property>
-           <property name="verticalHeaderFormat">
-            <enum>QCalendarWidget::ISOWeekNumbers</enum>
-           </property>
-           <property name="navigationBarVisible">
-            <bool>true</bool>
-           </property>
-           <property name="dateEditEnabled">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pb_AirportCongestion">
-           <property name="text">
-            <string>Загруженность аэропорта </string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="lb_statusConnection">
-        <property name="text">
-         <string>Отключено</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QListWidget" name="lw_Airport">
-        <property name="autoScroll">
-         <bool>true</bool>
-        </property>
-        <property name="showDropIndicator" stdset="0">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
-      <item row="0" column="0" colspan="2">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0" colspan="2">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Табло аэропорта</string>
@@ -124,7 +36,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0" rowspan="3" colspan="2">
+      <item>
        <widget class="QTabWidget" name="tw_AirportScoreboard">
         <property name="minimumSize">
          <size>
@@ -139,7 +51,7 @@
          <enum>QTabWidget::Triangular</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tb_Arrival">
          <attribute name="title">
@@ -281,27 +193,12 @@
         </widget>
        </widget>
       </item>
-      <item row="4" column="1">
-       <spacer name="spacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>320</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="0" column="2">
+     </layout>
+    </item>
+    <item row="0" column="2">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
        <widget class="QLabel" name="label_2">
-        <property name="maximumSize">
-         <size>
-          <width>300</width>
-          <height>16777215</height>
-         </size>
-        </property>
         <property name="text">
          <string>Аэропорты</string>
         </property>
@@ -310,7 +207,103 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QListWidget" name="lw_Airport">
+        <property name="maximumSize">
+         <size>
+          <width>280</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="autoScroll">
+         <bool>true</bool>
+        </property>
+        <property name="showDropIndicator" stdset="0">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTextBrowser" name="textBrowser">
+        <property name="maximumSize">
+         <size>
+          <width>280</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCalendarWidget" name="calendarWidget">
+        <property name="minimumSize">
+         <size>
+          <width>280</width>
+          <height>163</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>280</width>
+          <height>163</height>
+         </size>
+        </property>
+        <property name="mouseTracking">
+         <bool>true</bool>
+        </property>
+        <property name="tabletTracking">
+         <bool>true</bool>
+        </property>
+        <property name="gridVisible">
+         <bool>true</bool>
+        </property>
+        <property name="horizontalHeaderFormat">
+         <enum>QCalendarWidget::ShortDayNames</enum>
+        </property>
+        <property name="verticalHeaderFormat">
+         <enum>QCalendarWidget::ISOWeekNumbers</enum>
+        </property>
+        <property name="navigationBarVisible">
+         <bool>true</bool>
+        </property>
+        <property name="dateEditEnabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pb_AirportCongestion">
+        <property name="maximumSize">
+         <size>
+          <width>280</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Загруженность аэропорта </string>
+        </property>
+       </widget>
+      </item>
      </layout>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="lb_statusConnection">
+      <property name="text">
+       <string>Отключено</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1" colspan="2">
+     <spacer name="spacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>457</width>
+        <height>17</height>
+       </size>
+      </property>
+     </spacer>
     </item>
    </layout>
   </widget>
@@ -319,9 +312,12 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>674</width>
+     <width>656</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="defaultUp">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

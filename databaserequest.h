@@ -1,6 +1,8 @@
 #ifndef DATABASEREQUEST_H
 #define DATABASEREQUEST_H
 
+#pragma once
+
 #include <QObject>
 #include <QVector>
 #include <QMutex>
@@ -16,7 +18,7 @@
 #include "databasequery.h"
 #include "databasequeryairports.h"
 #include "databasequerycalendar.h"
-//#include "databasequerychart.h"
+#include "databasequerychart.h"
 #include "databasequeryday.h"
 #include "databasequerymanydays.h"
 #include "databasecache.h"
@@ -41,15 +43,17 @@ public:
     explicit DatabaseRequest(QSqlDatabase& database, QObject* parent = nullptr);
     ~DatabaseRequest();
 
-    void setListAirports();
-    void selectionDateByAirport(QString _airport_code);
-    void databaseSearch(QDate date);
+    void selectListAirports();
+    void selectDateByAirport(QString _airport_code);
+    void selectDatabaseSearch(QDate date);
+    void selectChartWorkload();
 
 signals:
 
     void sig_SetListAirports(QVector<QString> _airport_code, QVector<QString> _list_airports);
     void sig_MaxMinDate(QVector<QDate> max_min);
     void sig_Scoreboard(QVector<QVector<QVector<QString>>> scoreboard);
+    void sig_ChartWorkload(QVector<QDate> chart_workload);
 
 private slots:
 
@@ -57,6 +61,7 @@ private slots:
     void maxMinDate(QString _airport_code, QVector<QDate> max_min);
     void maxMinCache(QVector<QDate> max_min);
     void scoreboard(QVector<QVector<QVector<QString>>> day_scoreboard);
+    void chartWorkload(QString airport,  QDate date_scoreboard, QVector<QDate> chart_workload);
     //void scoreboardManydays(QString _airport_code, QDate date_scoreboard, QVector<QVector<QVector<QString>>> _airport_scoreboard);
 
 private:
@@ -68,7 +73,7 @@ private:
     DatabaseQuery* databaseQuery;
     DatabaseQueryAirports* databaseQueryAirports;
     DatabaseQueryCalendar* databaseQueryCalendar;
-    //DatabaseQueryChart* databaseQueryChart;
+    DatabaseQueryChart* databaseQueryChart;
     DatabaseQueryDay* databaseQueryDay;
     DatabaseQueryManydays* databaseQueryManydays;
     DatabaseQueryManydays* databaseQueryManydaysPlus;

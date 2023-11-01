@@ -1,11 +1,13 @@
 #include "databasequerychart.h"
 
-DatabaseQueryChart::DatabaseQueryChart()
-{
+DatabaseQueryChart::DatabaseQueryChart(QObject* parent)
+    : DatabaseQuery{parent} {
 
 }
 
+DatabaseQueryChart::~DatabaseQueryChart() {
 
+}
 
 void DatabaseQueryChart::setData(QDate _begin_date, QDate _end_date, QString _airport_code) {
 
@@ -31,21 +33,23 @@ void DatabaseQueryChart::run(QSqlQuery *sqlQuery) {
 
         mutex.unlock();
 
-        QVector<QVector<QVector<QString>>> scoreboard(2);
+        QVector<QDate> workload;
 
-        if(sqlQuery->exec(select_scoreboard_day_a + airport + select_scoreboard_day_a_2
-                           + begin_select + select_scoreboard_day_a_3 + end_select + select_scoreboard_day_a_4)) {
+        if(sqlQuery->exec(select_chart_workload + airport + select_chart_workload_2
+                           + airport + select_chart_workload_3 + begin_select
+                           + select_chart_workload_4 + end_select + select_chart_workload_5)) {
 
-            convertArray(sqlQuery, scoreboard, arrival);
+            convertArray(sqlQuery, workload);
         }
 
-        if(sqlQuery->exec(select_scoreboard_day_d + airport + select_scoreboard_day_d_2
-                           + begin_select + select_scoreboard_day_d_3 + end_select + select_scoreboard_day_d_4)) {
+//        if(sqlQuery->exec(select_scoreboard_month + begin_select + select_scoreboard_month_2
+//                           + end_select + select_scoreboard_month_3 + airport
+//                           + select_scoreboard_month_4 + airport + select_scoreboard_month_5)) {
 
-            convertArray(sqlQuery, scoreboard, departure);
-        }
+//            convertArray(sqlQuery, workload, month);
+//        }
 
-        emit sig_ScoreboardManydays(_airport_code, _date, scoreboard);
+        emit sig_ChartWorkload(_airport_code, _date, workload);
     }
     else {
 
@@ -53,18 +57,14 @@ void DatabaseQueryChart::run(QSqlQuery *sqlQuery) {
     }
 }
 
-void DatabaseQueryChart::convertArray(QSqlQuery *sqlQuery, QVector<QVector<QVector<QString>>>& scoreboard, qint8 index) {
+void DatabaseQueryChart::convertArray(QSqlQuery* sqlQuery, QVector<QDate>& workload) {
 
     qsizetype size = sqlQuery->size();
 
-    scoreboard[index].resize(size);
+    workload.resize(size);
 
     for (qsizetype i = 0; sqlQuery->next(); i++) {
 
-        scoreboard[index][i].resize(SET_COLUMN_MOMTH);
-        scoreboard[index][i][flight_no] = sqlQuery->value(flight_no).toString();
-        scoreboard[index][i][scheduled_departure] = sqlQuery->value(scheduled_departure).toDateTime().toString("dd:MM:yyyy hh:mm");
-        scoreboard[index][i][airport_name] = sqlQuery->value(airport_name).toString();
-        scoreboard[index][i][scheduled] = sqlQuery->value(scheduled).toDateTime().toString("dd:MM:yyyy");
+        workload[i] = sqlQuery->value(0).toDate();
     }
 }

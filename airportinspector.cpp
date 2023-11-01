@@ -23,7 +23,6 @@ AirportInspector::AirportInspector(QWidget *parent)
 
     ui->tw_AirportScoreboard->setEnabled(false);
     ui->lw_Airport->setEnabled(false);
-    //ui->fm_Selection->setEnabled(false);
     ui->calendarWidget->setEnabled(false);
     ui->pb_AirportCongestion->setEnabled(false);
     ui->calendarWidget->setSelectedDate(QDate::currentDate());
@@ -32,10 +31,12 @@ AirportInspector::AirportInspector(QWidget *parent)
     QObject::connect(databaseRequest, &DatabaseRequest::sig_SetListAirports, this, &AirportInspector::printListAirports);
     QObject::connect(databaseRequest, &DatabaseRequest::sig_MaxMinDate, this, &AirportInspector::maxMinDate);
     QObject::connect(databaseRequest, &DatabaseRequest::sig_Scoreboard, this, &AirportInspector::Scoreboard);
+    QObject::connect(databaseRequest, &DatabaseRequest::sig_ChartWorkload, this, &AirportInspector::ChartWorkload);
 }
 
 AirportInspector::~AirportInspector() {
 
+    delete waorkloadSchedule;
     delete widgetItem;
     delete ui;
 }
@@ -44,11 +45,10 @@ void AirportInspector::databaseConnectionStatusDay(bool status) {
 
     if (status) {
 
-        databaseRequest->setListAirports();
+        databaseRequest->selectListAirports();
 
         ui->lb_statusConnection->setText("Подключено");
         ui->tw_AirportScoreboard->setEnabled(true);
-        ui->fm_Selection->setEnabled(true);
     }
     else {
 
@@ -66,13 +66,10 @@ void AirportInspector::printListAirports(QVector<QString> _airport_code, QVector
     ui->lw_Airport->setEnabled(true);
 
     airport_code = _airport_code;
-
-//databaseConnection->selectionByAirport(airport_code[1]);
+    airport_name = _list_airports;
 }
 
 void AirportInspector::maxMinDate(QVector<QDate> max_min) {
-
-    //QDate current_data;
 
     ui->calendarWidget->setEnabled(true);
     ui->pb_AirportCongestion->setEnabled(true);
@@ -90,9 +87,17 @@ void AirportInspector::maxMinDate(QVector<QDate> max_min) {
 
     ui->calendarWidget->setGridVisible(true);
 
+    date = ui->calendarWidget->selectedDate();
+
+    databaseRequest->selectDatabaseSearch(date);
+
+
+
+
+
+
     ui->textBrowser->append(max_min.value(max).toString("dd:MM:yyyy"));
     ui->textBrowser->append(max_min.value(min).toString("dd:MM:yyyy"));
-    //qDebug() << current_data.currentDate();
 }
 
 void AirportInspector::Scoreboard(QVector<QVector<QVector<QString>>> scoreboard) {
@@ -106,9 +111,6 @@ void AirportInspector::Scoreboard(QVector<QVector<QVector<QString>>> scoreboard)
 
         ui->tw_Departure->removeRow(i);
     }
-
-//    ui->tw_Arrival->clearContents();
-//    ui->tw_Departure->clearContents();
 
     for (qsizetype i = 0; i < scoreboard[arrival].size(); i++) {
 
@@ -133,17 +135,27 @@ void AirportInspector::Scoreboard(QVector<QVector<QVector<QString>>> scoreboard)
     }
 }
 
-void AirportInspector::on_lw_Airport_itemDoubleClicked(QListWidgetItem *item) {
+void AirportInspector::ChartWorkload(QVector<QDate> chart_workload) {
 
-    databaseRequest->selectionDateByAirport(airport_code[ui->lw_Airport->currentRow()]);
+    if(waorkloadSchedule == nullptr) {
+
+        waorkloadSchedule = new WorkloadSchedule(this);
+    }
+    else {
+
+        waorkloadSchedule->clearGraphic();
+    }
+
+    waorkloadSchedule->printchart(airport, date, chart_workload);
+
+    waorkloadSchedule->show();
 }
-
 
 void AirportInspector::on_calendarWidget_clicked(const QDate &date) {
 
     ui->textBrowser->append(date.toString("dd:MM:yyyy"));
 
-    databaseRequest->databaseSearch(date);
+    databaseRequest->selectDatabaseSearch(date);
 }
 
 void AirportInspector::databaseConnectionError(DatabaseConnection& database) {
@@ -165,5 +177,35 @@ void AirportInspector::databaseConnectionError(DatabaseConnection& database) {
             database.connectToDatabase();
         });
     }
+}
+
+void AirportInspector::closeEvent(QCloseEvent *event) {
+
+    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "Close",
+                                                               tr("Are you sure?\n"), QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
+                                                               QMessageBox::Yes);
+
+    if (resBtn != QMessageBox::Yes) {
+
+        event->ignore();
+    }
+    else {
+
+        event->accept();
+    }
+}
+
+
+void AirportInspector::on_pb_AirportCongestion_clicked() {
+
+    databaseRequest->selectChartWorkload();
+}
+
+
+void AirportInspector::on_lw_Airport_clicked(const QModelIndex &index) {
+
+    databaseRequest->selectDateByAirport(airport_code[ui->lw_Airport->currentRow()]);
+
+    airport = airport_name[ui->lw_Airport->currentRow()];
 }
 

@@ -9,6 +9,7 @@
 #include <QListWidget>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QCloseEvent>
 
 
 #include "databaseconnection.h"
@@ -37,23 +38,29 @@ private slots:
     void printListAirports(QVector<QString> _airport_code, QVector<QString> _list_airports);
     void maxMinDate(QVector<QDate> max_min);
     void Scoreboard(QVector<QVector<QVector<QString>>> scoreboard);
-
-    void on_lw_Airport_itemDoubleClicked(QListWidgetItem *item);
+    void ChartWorkload(QVector<QDate> chart_workload);
 
     void on_calendarWidget_clicked(const QDate &date);
+    void on_pb_AirportCongestion_clicked();
+    void on_lw_Airport_clicked(const QModelIndex &index);
 
 private:
 
     Ui::AirportInspector *ui;
+
     WorkloadSchedule* waorkloadSchedule;
     DatabaseConnection* databaseConnection;
     DatabaseRequest* databaseRequest;
     QMessageBox* message;
     QTableWidgetItem* widgetItem;
 
+    QDate date;
+    QString airport;
     QVector<QString> airport_code;
+    QVector<QString> airport_name;
 
     void databaseConnectionError(DatabaseConnection& database);
+    void closeEvent (QCloseEvent *event) override;
 
 };
 

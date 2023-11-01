@@ -28,11 +28,12 @@
 
 #include <QDebug>
 
+#define SET_COLUMN_CHART 2
 #define SET_COLUMN_DAY 3
 #define SET_COLUMN_MOMTH 4
 #define REQUEST_TIMEOUT 10
 
-enum fieldsForScoreboard{
+enum fieldsForChart{
     arrival = 0,
     departure = 1
 };
@@ -62,7 +63,7 @@ public:
 
 protected:
 
-    QSqlQuery* sqlQuery;
+    //QSqlQuery* sqlQuery;
     QMutex mutex;
 };
 

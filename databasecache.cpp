@@ -104,11 +104,11 @@ bool DatabaseCache::selectDatabase(QDate _date, QString _airport_code) {
             selectVector(database_cache, day_scoreboard, time_database, arrival_c);
             selectVector(database_cache, day_scoreboard, time_database, departure_c);
 
-            locker.unlock();
+            //locker.unlock();
 
             emit sig_ScoreboardDay(day_scoreboard);
 
-            locker.relock();
+            //locker.relock();
 
             QVector<QVector<QVector<QString>>> database= database_cache.value(time_database);
             QString code = time_airport_code.value(time_database);
@@ -133,7 +133,7 @@ bool DatabaseCache::selectDatabase(QDate _date, QString _airport_code) {
 
 bool DatabaseCache::selectCalendar(QString _airport_code) {
 
-    //return false;
+    QMutexLocker locker(&mutex);
 
     if (airport_calendar.contains(_airport_code)) {
 
@@ -149,6 +149,8 @@ bool DatabaseCache::selectCalendar(QString _airport_code) {
 }
 
 bool DatabaseCache::boolManydays(QString _airport_code, QString date_manydays) {
+
+    QMutexLocker locker(&mutex);
 
     if (airport_database[_airport_code].contains(date_manydays)) {
 
