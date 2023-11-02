@@ -52,7 +52,7 @@ public slots:
 
 private:
 
-    QMutex mutex;
+    QMutex* mutex;
 
     QDate date_set_scoreboard;
     QDate select_date;

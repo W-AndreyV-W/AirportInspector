@@ -1,14 +1,16 @@
 #include "workloadschedule.h"
 #include "ui_workloadschedule.h"
 
-WorkloadSchedule::WorkloadSchedule(QWidget *parent) :
+WorkloadSchedule::WorkloadSchedule(QString _airport, QDate _date, QVector<QDate> _workload, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::WorkloadSchedule)
 {
 
-    ui->setupUi(this);
+    airport = _airport;
+    date = _date;
+    workload  = _workload;
 
-    ui->lb_Airport->setText(airport);
+    ui->setupUi(this);
 
     graphMonth = new QCPGraph(ui->cp_ChartMonth->xAxis, ui->cp_ChartMonth->yAxis);
     graphYear = new QCPBars(ui->cp_ChartYear->xAxis, ui->cp_ChartYear->yAxis);
@@ -19,6 +21,8 @@ WorkloadSchedule::WorkloadSchedule(QWidget *parent) :
     ui->cp_ChartYear->setInteraction(QCP::iRangeDrag, true);
 
     pushButtonFalse();
+
+    printchart(airport, date, workload);
 
     WorkloadSchedule::exec();
 }
@@ -41,7 +45,6 @@ void WorkloadSchedule::printchart(QString _airport, QDate _date, QVector<QDate> 
     QVector<double> graphic_y(MONTH, 0);
     QString date_year;
 
-
     for (qsizetype i = 0; i < workload.size(); i++) {
 
         graphic_y[workload[i].month() - 1]++;
@@ -49,7 +52,7 @@ void WorkloadSchedule::printchart(QString _airport, QDate _date, QVector<QDate> 
 
     for (qsizetype i = 0; i < graphic_y.size(); i++) {
 
-        graphic_x[i] = static_cast<double>(i);
+        graphic_x[i] = static_cast<double>(i + 1);
 
         if (graphic_y[i] > 0) {
 
@@ -69,7 +72,7 @@ void WorkloadSchedule::printchart(QString _airport, QDate _date, QVector<QDate> 
         ui->cp_ChartYear->graph(i)->data()->clear();
     }
 
-    ui->lb_Airport->setText(airport);
+    //ui->lb_Airport->setText(airport + " " +  date.toString("yyyy") + " " + date.toString("MMMM"));
 
     graphYear->setWidth(9/(double)graphic_x.size());
 
@@ -98,7 +101,6 @@ void WorkloadSchedule::clearGraphic() {
 void WorkloadSchedule::printmonth(qint32 num) {
 
     QDate date_chart;
-    QString date_month;
 
     if (num != 12) {
 
@@ -117,7 +119,7 @@ void WorkloadSchedule::printmonth(qint32 num) {
 
         if (i < end_date.day()) {
 
-            graphic_x[i] = static_cast<double>(i);
+            graphic_x[i] = static_cast<double>(i + 1);
         }
 
         if (workload[i].month() == end_date.month()) {
@@ -138,6 +140,8 @@ void WorkloadSchedule::printmonth(qint32 num) {
 
     ui->cp_ChartMonth->rescaleAxes();
     ui->cp_ChartMonth->replot();
+
+    ui->lb_Airport->setText(airport + " (" + end_date.toString("MMMM") + " " + end_date.toString("yyyy") + ")");
 }
 
 void WorkloadSchedule::switch_month(qint32 num) {

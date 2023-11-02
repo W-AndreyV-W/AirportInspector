@@ -1,31 +1,37 @@
 #include "databasequeryairports.h"
 
-DatabaseQueryAirports::DatabaseQueryAirports(QSqlQuery* sqlQuery, QObject* parent)
-    : DatabaseQuery{sqlQuery, parent} {
+DatabaseQueryAirports::DatabaseQueryAirports(QSqlQuery* _sqlQuery, QMutex* _mutex, QObject* parent)
+    : QObject{parent} {
+
+    sqlQuery = _sqlQuery;
+    mutex = _mutex;
 }
 
 DatabaseQueryAirports::~DatabaseQueryAirports() {
 
 }
 
-void DatabaseQueryAirports::setListAirports() {
+void DatabaseQueryAirports::selectListAirports() {
 
-    //auto funList = QtConcurrent::run([&] () {
+    QMutexLocker locker(mutex);
 
-        if (sqlQuery->exec(select_list_airports)) {
+    QString select = select_list_airports;
 
-            qsizetype size = sqlQuery->size();
+    if (sqlQuery->exec(select)) {
 
-            QVector<QString> airport_code(size, "");
-            QVector<QString> list_airports(size, "");
+        qsizetype size = sqlQuery->size();
 
-            for (qsizetype i = 0; sqlQuery->next(); i++) {
+        QVector<QString> airport_code(size, "");
+        QVector<QString> list_airports(size, "");
 
-                list_airports[i] = sqlQuery->value(0).toString() + " (" + sqlQuery->value(2).toString() + ")";
-                airport_code[i] = sqlQuery->value(1).toString();
-            }
 
-            emit sig_listAirports(airport_code, list_airports);
+        for (qsizetype i = 0; sqlQuery->next(); i++) {
+
+            list_airports[i] = sqlQuery->value(0).toString() + " (" + sqlQuery->value(2).toString() + ")";
+            airport_code[i] = sqlQuery->value(1).toString();
         }
-    //});
+
+        emit sig_listAirports(airport_code, list_airports);
+    }
+
 }

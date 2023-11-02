@@ -1,24 +1,38 @@
 #ifndef DATABASEQUERYAIRPORTS_H
 #define DATABASEQUERYAIRPORTS_H
 
-#include "databasequery.h"
+#include <QObject>
+#include <QVector>
+#include <QString>
+#include <QMutex>
+#include <QMutexLocker>
+#include <QtConcurrent>
+#include <QFuture>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QDateTime>
+#include <QDate>
+#include <QSqlError>
 
-class DatabaseQueryAirports : public DatabaseQuery {
+class DatabaseQueryAirports : public QObject {
 
     Q_OBJECT
 
 public:
 
-    explicit DatabaseQueryAirports(QSqlQuery* sqlQuery, QObject* parent);
+    explicit DatabaseQueryAirports(QSqlQuery* _sqlQuery, QMutex* _mutex, QObject* parent);
     ~DatabaseQueryAirports();
 
-    void setListAirports();
+    void selectListAirports();
 
 signals:
 
     void sig_listAirports(QVector<QString> airport_code, QVector<QString> list_airports);
 
 private:
+
+    QSqlQuery* sqlQuery;
+    QMutex* mutex;
 
     QString select_list_airports = "SELECT airport_name->>'ru', airport_code, city->>'ru' "
                                    " FROM bookings.airports_data "

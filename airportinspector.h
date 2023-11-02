@@ -58,6 +58,7 @@ private:
     QString airport;
     QVector<QString> airport_code;
     QVector<QString> airport_name;
+    bool close_event = true;
 
     void databaseConnectionError(DatabaseConnection& database);
     void closeEvent (QCloseEvent *event) override;

@@ -8,7 +8,7 @@ AirportInspector::AirportInspector(QWidget *parent)
     ui->setupUi(this);
 
     databaseConnection = new DatabaseConnection(this);
-    databaseRequest = new DatabaseRequest(databaseConnection->getSqlDatabase(), this);
+    databaseRequest = new DatabaseRequest(&databaseConnection->getSqlDatabase(), this);
     widgetItem = new QTableWidgetItem();
 
     ui->tw_Arrival->setColumnCount(SETCOLUMN);
@@ -25,7 +25,10 @@ AirportInspector::AirportInspector(QWidget *parent)
     ui->lw_Airport->setEnabled(false);
     ui->calendarWidget->setEnabled(false);
     ui->pb_AirportCongestion->setEnabled(false);
+    ui->lb_Workload->setEnabled(false);
     ui->calendarWidget->setSelectedDate(QDate::currentDate());
+
+    ui->lb_Workload->setText("Pагруженности аэропорта 0 в/п в день");
 
     QObject::connect(databaseConnection, &DatabaseConnection::sig_SendStatusConnection, this, &AirportInspector::databaseConnectionStatusDay);
     QObject::connect(databaseRequest, &DatabaseRequest::sig_SetListAirports, this, &AirportInspector::printListAirports);
@@ -73,6 +76,7 @@ void AirportInspector::maxMinDate(QVector<QDate> max_min) {
 
     ui->calendarWidget->setEnabled(true);
     ui->pb_AirportCongestion->setEnabled(true);
+    ui->lb_Workload->setEnabled(true);
 
     if (max_min.value(max) < ui->calendarWidget->selectedDate()) {
 
@@ -90,17 +94,13 @@ void AirportInspector::maxMinDate(QVector<QDate> max_min) {
     date = ui->calendarWidget->selectedDate();
 
     databaseRequest->selectDatabaseSearch(date);
-
-
-
-
-
-
-    ui->textBrowser->append(max_min.value(max).toString("dd:MM:yyyy"));
-    ui->textBrowser->append(max_min.value(min).toString("dd:MM:yyyy"));
 }
 
 void AirportInspector::Scoreboard(QVector<QVector<QVector<QString>>> scoreboard) {
+
+    qint32 workload = scoreboard[arrival_c].size() + scoreboard[departure_c].size();
+
+    ui->lb_Workload->setText("Pагруженности аэропорта " + QString::number(workload) + " в/п в день");
 
     for (qsizetype i = 0; i <= ui->tw_Arrival->rowCount(); i++) {
 
@@ -112,24 +112,24 @@ void AirportInspector::Scoreboard(QVector<QVector<QVector<QString>>> scoreboard)
         ui->tw_Departure->removeRow(i);
     }
 
-    for (qsizetype i = 0; i < scoreboard[arrival].size(); i++) {
+    for (qsizetype i = 0; i < scoreboard[arrival_c].size(); i++) {
 
-        ui->tw_Arrival->setRowCount(scoreboard[arrival].size());
+        ui->tw_Arrival->setRowCount(scoreboard[arrival_c].size());
 
         for (qsizetype j = 0; j < SETCOLUMN; j++) {
 
-            widgetItem->setText(scoreboard[arrival][i][j]);
+            widgetItem->setText(scoreboard[arrival_c][i][j]);
             ui->tw_Arrival->setItem(i, j, widgetItem->clone());
         }
     }
 
-    for (qsizetype i = 0; i < scoreboard[departure].size(); i++) {
+    for (qsizetype i = 0; i < scoreboard[departure_c].size(); i++) {
 
-        ui->tw_Departure->setRowCount(scoreboard[departure].size());
+        ui->tw_Departure->setRowCount(scoreboard[departure_c].size());
 
         for (qsizetype j = 0; j < SETCOLUMN; j++) {
 
-            widgetItem->setText(scoreboard[departure][i][j]);
+            widgetItem->setText(scoreboard[departure_c][i][j]);
             ui->tw_Departure->setItem(i, j, widgetItem->clone());
         }
     }
@@ -139,21 +139,19 @@ void AirportInspector::ChartWorkload(QVector<QDate> chart_workload) {
 
     if(waorkloadSchedule == nullptr) {
 
-        waorkloadSchedule = new WorkloadSchedule(this);
+        waorkloadSchedule = new WorkloadSchedule(airport, date, chart_workload, this);
     }
     else {
 
         waorkloadSchedule->clearGraphic();
+
+        waorkloadSchedule->printchart(airport, date, chart_workload);
+
+        waorkloadSchedule->show();
     }
-
-    waorkloadSchedule->printchart(airport, date, chart_workload);
-
-    waorkloadSchedule->show();
 }
 
 void AirportInspector::on_calendarWidget_clicked(const QDate &date) {
-
-    ui->textBrowser->append(date.toString("dd:MM:yyyy"));
 
     databaseRequest->selectDatabaseSearch(date);
 }
@@ -166,7 +164,10 @@ void AirportInspector::databaseConnectionError(DatabaseConnection& database) {
 
     if (msg == QMessageBox::Close) {
 
+        close_event = false;
+
         AirportInspector::close();
+
     }
     else {
 
@@ -181,17 +182,20 @@ void AirportInspector::databaseConnectionError(DatabaseConnection& database) {
 
 void AirportInspector::closeEvent(QCloseEvent *event) {
 
-    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "Close",
-                                                               tr("Are you sure?\n"), QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
-                                                               QMessageBox::Yes);
+    if (close_event) {
 
-    if (resBtn != QMessageBox::Yes) {
+        QMessageBox::StandardButton resBtn = QMessageBox::question( this, "Close",
+                                                                   tr("Are you sure?\n"), QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
+                                                                   QMessageBox::Yes);
 
-        event->ignore();
-    }
-    else {
+        if (resBtn != QMessageBox::Yes) {
 
-        event->accept();
+            event->ignore();
+        }
+        else {
+
+            event->accept();
+        }
     }
 }
 

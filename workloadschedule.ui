@@ -209,7 +209,7 @@
      <item row="0" column="0" colspan="3">
       <widget class="QLabel" name="lb_Airport">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
        <property name="scaledContents">
         <bool>false</bool>

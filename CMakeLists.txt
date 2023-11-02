@@ -24,8 +24,6 @@ set(PROJECT_SOURCES
         databaseconnection.cpp
         databasecache.h
         databasecache.cpp
-        databasequery.h
-        databasequery.cpp
         databaserequest.h
         databaserequest.cpp
         databasequeryairports.h

@@ -1,24 +1,19 @@
 #include "databaserequest.h"
 
-DatabaseRequest::DatabaseRequest(QSqlDatabase& database, QObject* parent)
+DatabaseRequest::DatabaseRequest(QSqlDatabase* database, QObject* parent)
     : QObject{parent}
 {
-//    lockpool = new QWaitCondition();
-//    lockmap = new QWaitCondition();
 
-    sqlQuery = new QSqlQuery(database);
+    sqlQuery = new QSqlQuery(*database);
+    mutex = new QMutex();
+    mutexTimeOut = new QMutex();
 
-    pool = new QThreadPool(this);
-
-    databaseQuery = new DatabaseQuery(sqlQuery, this);
-    databaseQueryAirports = new DatabaseQueryAirports(sqlQuery, this);
-    databaseQueryCalendar = new DatabaseQueryCalendar(sqlQuery, this);
-    databaseQueryChart = new DatabaseQueryChart(sqlQuery, this);
-    databaseQueryDay = new DatabaseQueryDay(sqlQuery, this);
-    databaseQueryManydays = new DatabaseQueryManydays(sqlQuery, this);
-    databaseQueryManydaysPlus = new DatabaseQueryManydays(sqlQuery, this);
-    databaseQueryManydaysMinus  = new DatabaseQueryManydays(sqlQuery, this);
     databaseCache = new DatabaseCache(this);
+    databaseQueryAirports = new DatabaseQueryAirports(sqlQuery, mutexTimeOut, parent);
+    databaseQueryCalendar = new DatabaseQueryCalendar(sqlQuery, mutexTimeOut, parent);
+    databaseQueryDay = new DatabaseQueryDay(sqlQuery, mutexTimeOut, parent);
+    databaseQueryManydays = new DatabaseQueryManydays(sqlQuery, mutexTimeOut, parent);
+    databaseQueryChart = new DatabaseQueryChart(sqlQuery, mutexTimeOut, parent);
 
     QObject::connect(databaseQueryAirports, &DatabaseQueryAirports::sig_listAirports, this, &DatabaseRequest::listAirports);
     QObject::connect(databaseQueryCalendar, &DatabaseQueryCalendar::sig_MaxMinDate, this, &DatabaseRequest::maxMinDate);
@@ -26,114 +21,127 @@ DatabaseRequest::DatabaseRequest(QSqlDatabase& database, QObject* parent)
     QObject::connect(databaseQueryDay, &DatabaseQueryDay::sig_ScoreboardDay, this, &DatabaseRequest::scoreboard);
     QObject::connect(databaseCache, &DatabaseCache::sig_ScoreboardDay, this, &DatabaseRequest::scoreboard);
     QObject::connect(databaseQueryManydays, &DatabaseQueryManydays::sig_ScoreboardManydays, databaseCache, &DatabaseCache::setAirportDatabase);
-    QObject::connect(databaseQueryManydaysPlus, &DatabaseQueryManydays::sig_ScoreboardManydays, databaseCache, &DatabaseCache::setAirportDatabase);
-    QObject::connect(databaseQueryManydaysMinus, &DatabaseQueryManydays::sig_ScoreboardManydays, databaseCache, &DatabaseCache::setAirportDatabase);
     QObject::connect(databaseQueryChart, &DatabaseQueryChart::sig_ChartWorkload, this, &DatabaseRequest::chartWorkload);
-
-    request_queue.resize(REQUEST_QUEUE, false);
-
-    //requestQueue();
 }
 
 DatabaseRequest::~DatabaseRequest() {
 
+    delete mutexTimeOut;
+    delete mutex;
+    delete sqlQuery;
 }
 
 void DatabaseRequest::selectListAirports() {
 
-    databaseQueryAirports->setListAirports();
+    QMutexLocker locker(mutex);
+
+    databaseQueryAirports->selectListAirports();
 }
 
 void DatabaseRequest::selectDateByAirport(QString _airport_code) {
 
-    //QMutexLocker locker(&mutex);
+    QMutexLocker locker(mutex);
 
     airport_code = _airport_code;
 
     if (!databaseCache->selectCalendar(_airport_code)) {
 
-        databaseQueryCalendar->setData(_airport_code);
+        auto funCalendar = QtConcurrent::run([&] () {
 
-        //request_queue[calendar] = true;
+            QMutexLocker locker(mutex);
 
-        //auto funCalendar = QtConcurrent::run(pool, [&] () {
+            QString airport = airport_code;
 
-            databaseQueryCalendar->run();
-        //});
+            databaseQueryCalendar->selectMaxMinDate(airport);
+        });
     }
 }
 
 void DatabaseRequest::selectDatabaseSearch(QDate date) {
 
-    //QMutexLocker locker(&mutex);
+    QMutexLocker locker(mutex);
 
     current_date = date;
 
-    qint32 month_date = date.month();
-    qint32 year_date = date.year();
+    qint32 month_date = current_date.month();
+    qint32 year_date = current_date.year();
+    QDate begin_date;
+    QDate end_date;
 
-    if (!databaseCache->selectDatabase(date, airport_code)) {
 
-        databaseQueryDay->setData(date, airport_code);
+    if (!databaseCache->selectDatabase(current_date, airport_code)) {
 
-        //auto funDay = QtConcurrent::run([&] () {
+        databaseQueryDay->selectScoreboardDay(current_date, airport_code);
 
-            databaseQueryDay->run();
-        //});
+        auto funDay = QtConcurrent::run([&] () {
 
+            QMutexLocker locker(mutex);
+
+            qint32 month_date = current_date.month();
+            qint32 year_date = current_date.year();
+            QDate begin_date;
+            QDate end_date;
+
+            manyDays(begin_date , end_date, year_date, month_date);
+
+            databaseQueryManydays->selectScoreboardManydays(begin_date , end_date, airport_code);
+        });
+    }
+
+        auto funDay = QtConcurrent::run([&] () {
+
+        QMutexLocker locker(mutex);
+
+        qint32 month_date = current_date.month();
+        qint32 year_date = current_date.year();
         QDate begin_date;
         QDate end_date;
 
-        manyDays(begin_date, end_date, year_date, month_date);
-
-        databaseQueryManydays->setData(begin_date, end_date, airport_code);
-
-        //auto funManydays = QtConcurrent::run([&] () {
-
-            databaseQueryManydays->run();
-        //});
-    }
-
-    manyDaysPlus(year_date, month_date);
-    manyDaysMinus(year_date, month_date);
+        manyDaysPlus(begin_date , end_date, year_date, month_date);
+        manyDaysMinus(begin_date , end_date, year_date, month_date);
+    });
 }
 
 void DatabaseRequest::selectChartWorkload() {
 
-    QDate begin_date = QDate(current_date.year(), 1, 1);
-    QDate end_date = QDate(current_date.year(), 12, 31);
+    auto funManyChar = QtConcurrent::run([&] () {
 
-    if (begin_date < min_date) {
+        QMutexLocker locker(mutex);
+        QDate begin_date;
+        QDate end_date;
 
-        begin_date = min_date;
-    }
+        begin_date = QDate(current_date.year(), 1, 1);
+        end_date = QDate(current_date.year(), 12, 31);
 
-    if (end_date > max_date) {
+        if (begin_date < min_date) {
 
-        end_date = max_date;
-    }
+            begin_date = min_date;
+        }
 
-    databaseQueryChart->setData(begin_date, end_date, airport_code);
+        if (end_date > max_date) {
 
-    databaseQueryChart->run();
+            end_date = max_date;
+        }
+
+        databaseQueryChart->selectChartWorkload(begin_date, end_date, airport_code);
+    });
 }
 
 void DatabaseRequest::listAirports(QVector<QString> _airport_code, QVector<QString> _list_airports) {
 
-    QVector<QString> airport_code = _airport_code;
-    QVector<QString> list_airports = _list_airports;
-
-    emit sig_SetListAirports(airport_code, list_airports);
+    emit sig_SetListAirports(_airport_code, _list_airports);
 }
 
 void DatabaseRequest::maxMinDate(QString _airport_code, QVector<QDate> max_min) {
 
-    QMutexLocker locker(&mutex);
+    QMutexLocker locker(mutex);
 
     if (airport_code == _airport_code) {
 
         max_date = max_min.value(max);
         min_date = max_min.value(min);
+
+        locker.unlock();
 
         emit sig_MaxMinDate(max_min);
     }
@@ -153,15 +161,17 @@ void DatabaseRequest::scoreboard(QVector<QVector<QVector<QString>>> day_scoreboa
 
 void DatabaseRequest::chartWorkload(QString airport, QDate date_scoreboard, QVector<QDate> chart_workload) {
 
+    QMutexLocker locker(mutex);
+
     if (airport == airport_code) {
+
+        locker.unlock();
 
         emit sig_ChartWorkload(chart_workload);
     }
 }
 
 void DatabaseRequest::manyDays(QDate& begin_date, QDate& end_date, qint32 year_num, qint32 month_num) {
-
-    //QMutexLocker locker(&mutex);
 
     begin_date = QDate(year_num, month_num, 1);
 
@@ -186,7 +196,7 @@ void DatabaseRequest::manyDays(QDate& begin_date, QDate& end_date, qint32 year_n
     }
 }
 
-void DatabaseRequest::manyDaysPlus(qint32 year_date, qint32 month_date) {
+void DatabaseRequest::manyDaysPlus(QDate& begin_date, QDate& end_date, qint32 year_date, qint32 month_date) {
 
     ++month_date;
 
@@ -205,22 +215,14 @@ void DatabaseRequest::manyDaysPlus(qint32 year_date, qint32 month_date) {
 
         if (!databaseCache->boolManydays(airport_code, date_manydays)) {
 
-            QDate begin_date;
-            QDate end_date;
+            manyDays(begin_date , end_date, year_date, month_date);
 
-            manyDays(begin_date, end_date, year_date, month_date);
-
-            databaseQueryManydaysPlus->setData(begin_date, end_date, airport_code);
-
-            //auto funPlusManydays = QtConcurrent::run(pool, [&] () {
-
-                databaseQueryManydaysPlus->run();
-            //});
+            databaseQueryManydays->selectScoreboardManydays(begin_date , end_date, airport_code);
         }
     }
 }
 
-void DatabaseRequest::manyDaysMinus(qint32 year_date, qint32 month_date) {
+void DatabaseRequest::manyDaysMinus(QDate& begin_date, QDate& end_date, qint32 year_date, qint32 month_date) {
 
     --month_date;
 
@@ -239,17 +241,9 @@ void DatabaseRequest::manyDaysMinus(qint32 year_date, qint32 month_date) {
 
         if (!databaseCache->boolManydays(airport_code, date_manydays)) {
 
-            QDate begin_date;
-            QDate end_date;
+            manyDays(begin_date , end_date, year_date, month_date);
 
-            manyDays(begin_date, end_date, year_date, month_date);
-
-            databaseQueryManydaysMinus->setData(begin_date, end_date, airport_code);
-
-            //auto funMinusManydays = QtConcurrent::run(pool, [&] () {
-
-                databaseQueryManydaysMinus->run();
-            //});
+            databaseQueryManydays->selectScoreboardManydays(begin_date , end_date, airport_code);
         }
     }
 }

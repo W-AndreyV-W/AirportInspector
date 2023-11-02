@@ -1,19 +1,43 @@
 #ifndef DATABASEQUERYDAY_H
 #define DATABASEQUERYDAY_H
 
-#include "databasequery.h"
+#include <QObject>
+#include <QVector>
+#include <QString>
+#include <QMutex>
+#include <QMutexLocker>
+#include <QtConcurrent>
+#include <QFuture>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QDateTime>
+#include <QDate>
+#include <QSqlError>
 
-class DatabaseQueryDay : public DatabaseQuery {
+#define SET_COLUMN_DAY 3
+
+enum fieldsForChartDay{
+    arrival_day = 0,
+    departure_day = 1
+};
+
+enum fieldsForQVectorDay{
+    flight_no_day = 0,
+    scheduled_departure_day = 1,
+    airport_name_day= 2,
+    scheduled_day = 3
+};
+
+class DatabaseQueryDay : public QObject {
 
     Q_OBJECT
 
 public:
 
-    DatabaseQueryDay(QSqlQuery* sqlQuery, QObject* parent);
+    DatabaseQueryDay(QSqlQuery* _sqlQuery, QMutex* _mutex, QObject* parent);
     ~DatabaseQueryDay();
 
-    void setData(QDate _date, QString _airport_code);
-    void run() override;
+    void selectScoreboardDay(QDate date, QString airport_code) ;
 
 signals:
 
@@ -21,8 +45,8 @@ signals:
 
 private:
 
-    QDate date;
-    QString airport_code;
+    QSqlQuery* sqlQuery;
+    QMutex* mutex;
 
     QString select_scoreboard_day_a = "SELECT flight_no, scheduled_departure, ad.airport_name->>'ru'"
                                       " FROM bookings.flights f"
@@ -38,7 +62,7 @@ private:
     QString select_scoreboard_day_d_2 = " AND f.scheduled_departure::date = date(";
     QString select_scoreboard_day_d_3 = ") ORDER BY f.scheduled_departure ASC";
 
-    void convertArray(QSqlQuery* sqlQuery, QVector<QVector<QVector<QString>>>& scoreboard, qint8 index);
+    void convertArray(QVector<QVector<QVector<QString>>>& scoreboard, qint8 index);
 };
 
 #endif // DATABASEQUERYDAY_H

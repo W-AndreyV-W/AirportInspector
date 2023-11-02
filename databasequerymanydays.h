@@ -1,19 +1,43 @@
 #ifndef DATABASEQUERYMANYDAYS_H
 #define DATABASEQUERYMANYDAYS_H
 
-#include "databasequery.h"
+#include <QObject>
+#include <QVector>
+#include <QString>
+#include <QMutex>
+#include <QMutexLocker>
+#include <QtConcurrent>
+#include <QFuture>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QDateTime>
+#include <QDate>
+#include <QSqlError>
 
-class DatabaseQueryManydays : public DatabaseQuery {
+#define SET_COLUMN_MOMTH 4
+
+enum fieldsForChartMonth{
+    arrival_month = 0,
+    departure_month = 1
+};
+
+enum fieldsForQVectorMonth{
+    flight_no_month = 0,
+    scheduled_departure_month = 1,
+    airport_name_month = 2,
+    scheduled_month = 3
+};
+
+class DatabaseQueryManydays : public QObject {
 
     Q_OBJECT
 
 public:
 
-    DatabaseQueryManydays(QSqlQuery* sqlQuery, QObject* parent);
+    DatabaseQueryManydays(QSqlQuery* _sqlQuery, QMutex* _mutex, QObject* parent);
     ~DatabaseQueryManydays();
 
-    void setData(QDate _begin_date, QDate _end_date, QString _airport_cod);
-    void run() override;
+    void selectScoreboardManydays(QDate begin_date, QDate end_date, QString airport_code);
 
 signals:
 
@@ -21,9 +45,8 @@ signals:
 
 private:
 
-    QDate begin_date;
-    QDate end_date;
-    QString airport_code;
+    QSqlQuery* sqlQuery;
+    QMutex* mutex;
 
     QString select_scoreboard_day_d = "SELECT flight_no, scheduled_departure, ad.airport_name->>'ru', scheduled_departure::date"
                                       " FROM bookings.flights f"
@@ -41,7 +64,7 @@ private:
     QString select_scoreboard_day_a_3 = ") AND f.scheduled_arrival::date < date(";
     QString select_scoreboard_day_a_4 = ")) ORDER BY f.scheduled_arrival ASC";
 
-    void convertArray(QSqlQuery* sqlQuery, QVector<QVector<QVector<QString>>>& scoreboard, qint8 index);
+    void convertArray(QVector<QVector<QVector<QString>>>& scoreboard, qint8 index);
 };
 
 #endif // DATABASEQUERYMANYDAYS_H

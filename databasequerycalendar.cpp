@@ -1,34 +1,27 @@
 #include "databasequerycalendar.h"
 
-DatabaseQueryCalendar::DatabaseQueryCalendar(QSqlQuery* sqlQuery, QObject* parent)
-    : DatabaseQuery{sqlQuery, parent} {
+DatabaseQueryCalendar::DatabaseQueryCalendar(QSqlQuery* _sqlQuery, QMutex* _mutex, QObject* parent)
+    : QObject{parent} {
 
-    ;
+    sqlQuery = _sqlQuery;
+    mutex = _mutex;
 }
 
 DatabaseQueryCalendar::~DatabaseQueryCalendar() {
 
 }
 
-void DatabaseQueryCalendar::setData(QString _airport_code) {
 
-    QMutexLocker locker(&mutex);
+void DatabaseQueryCalendar::selectMaxMinDate(QString airport_code) {
 
-    airport_code =_airport_code;
-}
+    QMutexLocker locker(mutex);
 
-void DatabaseQueryCalendar::run() {
-
-    mutex.lock();
+    QString airport_select = "'" + airport_code + "'";
+    QString select = select_date + airport_select + select_date_2 + airport_select;
 
     if (airport_code != "") {
 
-        QString airport = "'" + airport_code + "'";
-        //airport_code = "";
-
-        mutex.unlock();
-
-        if (sqlQuery->exec(select_date + airport + select_date_2 + airport)) {
+        if (sqlQuery->exec(select)) {
 
             sqlQuery->next();
 
@@ -39,9 +32,5 @@ void DatabaseQueryCalendar::run() {
 
             emit sig_MaxMinDate(airport_code, max_min);
         }
-    }
-    else {
-
-        mutex.unlock();
     }
 }

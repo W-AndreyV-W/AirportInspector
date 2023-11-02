@@ -7,17 +7,6 @@
 #include "./library/qcustomplot.h"
 
 #define MONTH 12
-//#define STEPS 1000
-
-//enum fieldsForScoreboardWorkload{
-//    year_work = 0,
-//    month_work = 1
-//};
-
-//enum fieldsForQVectorWorkload{
-//    flight_no_work = 0,
-//    scheduled_departure_work = 1,
-//};
 
 namespace Ui {
 class WorkloadSchedule;
@@ -29,7 +18,7 @@ class WorkloadSchedule : public QDialog {
 
 public:
 
-    explicit WorkloadSchedule(QWidget *parent = nullptr);
+    explicit WorkloadSchedule(QString _airport, QDate _date, QVector<QDate> _workload, QWidget *parent = nullptr);
     ~WorkloadSchedule();
 
     void printchart(QString _airport, QDate _date, QVector<QDate> _workload);

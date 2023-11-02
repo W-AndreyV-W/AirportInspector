@@ -1,27 +1,43 @@
 #ifndef DATABASEQUERYCALENDAR_H
 #define DATABASEQUERYCALENDAR_H
 
-#include "databasequery.h"
+#include <QObject>
+#include <QVector>
+#include <QString>
+#include <QMutex>
+#include <QMutexLocker>
+#include <QtConcurrent>
+#include <QFuture>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QDateTime>
+#include <QDate>
+#include <QSqlError>
 
-class DatabaseQueryCalendar : public DatabaseQuery {
+enum fieldsForCalendar{
+    max = 0,
+    min = 1
+};
+
+class DatabaseQueryCalendar : public QObject {
 
     Q_OBJECT
 
 public:
 
-    DatabaseQueryCalendar(QSqlQuery* sqlQuery, QObject* parent);
+    DatabaseQueryCalendar(QSqlQuery* _sqlQuery, QMutex* _mutex, QObject* parent);
     ~DatabaseQueryCalendar();
 
-    void setData(QString _airport_code);
-    void run() override;
+    void selectMaxMinDate(QString airport_code);
 
 signals:
 
-    void sig_MaxMinDate(QString _airport_code, QVector<QDate> max_min);
+    void sig_MaxMinDate(QString airport_code, QVector<QDate> max_min);
 
 private:
 
-    QString airport_code;
+    QSqlQuery* sqlQuery;
+    QMutex* mutex;
 
     QString select_date = "SELECT MAX(scheduled_departure::date), MIN(scheduled_departure::date)"
                           " FROM bookings.flights"

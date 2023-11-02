@@ -51,7 +51,7 @@
          <enum>QTabWidget::Triangular</enum>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tb_Arrival">
          <attribute name="title">
@@ -224,12 +224,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QTextBrowser" name="textBrowser">
-        <property name="maximumSize">
-         <size>
-          <width>280</width>
-          <height>16777215</height>
-         </size>
+       <widget class="QLabel" name="lb_Workload">
+        <property name="text">
+         <string>TextLabel</string>
         </property>
        </widget>
       </item>

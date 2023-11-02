@@ -9,30 +9,18 @@
 #include <QMutexLocker>
 #include <QWaitCondition>
 #include <QThread>
-#include <QThreadPool>
-//#include <QRunnable>
 #include <QtConcurrent>
 #include <QSqlDatabase>
 
 
-#include "databasequery.h"
+#include "databasecache.h"
 #include "databasequeryairports.h"
 #include "databasequerycalendar.h"
 #include "databasequerychart.h"
 #include "databasequeryday.h"
 #include "databasequerymanydays.h"
-#include "databasecache.h"
 
-#define REQUEST_QUEUE 6
-
-enum fieldsForRequestQueue{
-    calendar = 0,
-    request_day = 1,
-    request_manydays = 2,
-    request_chart = 3,
-    request_plus_manydays = 4,
-    request_minus_manydays = 5
-};
+#define REQUEST_TIMEOUT 100
 
 class DatabaseRequest : public QObject {
 
@@ -40,7 +28,7 @@ class DatabaseRequest : public QObject {
 
 public:
 
-    explicit DatabaseRequest(QSqlDatabase& database, QObject* parent = nullptr);
+    explicit DatabaseRequest(QSqlDatabase* database, QObject* parent = nullptr);
     ~DatabaseRequest();
 
     void selectListAirports();
@@ -62,41 +50,29 @@ private slots:
     void maxMinCache(QVector<QDate> max_min);
     void scoreboard(QVector<QVector<QVector<QString>>> day_scoreboard);
     void chartWorkload(QString airport,  QDate date_scoreboard, QVector<QDate> chart_workload);
-    //void scoreboardManydays(QString _airport_code, QDate date_scoreboard, QVector<QVector<QVector<QString>>> _airport_scoreboard);
 
 private:
 
-    QMutex mutex;
-    QThreadPool* pool;
+    QMutex* mutex;
+    QMutex* mutexTimeOut;
     QSqlQuery* sqlQuery;
 
-    DatabaseQuery* databaseQuery;
+    DatabaseCache* databaseCache;
     DatabaseQueryAirports* databaseQueryAirports;
     DatabaseQueryCalendar* databaseQueryCalendar;
-    DatabaseQueryChart* databaseQueryChart;
     DatabaseQueryDay* databaseQueryDay;
     DatabaseQueryManydays* databaseQueryManydays;
-    DatabaseQueryManydays* databaseQueryManydaysPlus;
-    DatabaseQueryManydays* databaseQueryManydaysMinus;
-    DatabaseCache* databaseCache;
+    DatabaseQueryChart* databaseQueryChart;
 
     QString airport_code;
     QDate current_date;
     QDate max_date;
     QDate min_date;
-    //bool timeOut = true;
-
-    QVector<bool> request_queue;
-    QVector<QDate> set_begin_date;
-    QVector<QDate> set_end_date;
-    QVector<QString> set_airport_code;
 
     void requestQueue();
-    void manyDays(QDate& begin_date, QDate& end_date, qint32 year_num, qint32 month_num);
-    void manyDaysPlus(qint32 year_date, qint32 month_date);
-    void manyDaysMinus(qint32 year_date, qint32 month_date);
-//    void capturingQSqlDatabaseOn();
-//    void capturingQSqlDatabaseOnOff();
+    void manyDays(QDate& begin, QDate& end, qint32 year_num, qint32 month_num);
+    void manyDaysPlus(QDate& begin_date, QDate& end_date, qint32 year_date, qint32 month_date);
+    void manyDaysMinus(QDate& begin_date, QDate& end_date, qint32 year_date, qint32 month_date);
 };
 
 #endif // DATABASEREQUEST_H
