@@ -1,66 +1,81 @@
 #include "workloadschedule.h"
 #include "ui_workloadschedule.h"
 
-WorkloadSchedule::WorkloadSchedule(QString _airport, QDate _date, QVector<QDate> _workload, QWidget *parent) :
+WorkloadSchedule::WorkloadSchedule(QString _airport, QDate _date, QDate _date_max, QDate _date_min, QVector<QDate> chart_workload, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::WorkloadSchedule)
 {
 
     airport = _airport;
     date = _date;
-    workload  = _workload;
+    date_max = _date_max;
+    date_min = _date_min;
 
     ui->setupUi(this);
 
     graphMonth = new QCPGraph(ui->cp_ChartMonth->xAxis, ui->cp_ChartMonth->yAxis);
     graphYear = new QCPBars(ui->cp_ChartYear->xAxis, ui->cp_ChartYear->yAxis);
 
-    ui->cp_ChartMonth->setInteraction(QCP::iRangeZoom, true);
-    ui->cp_ChartMonth->setInteraction(QCP::iRangeDrag, true);
-    ui->cp_ChartYear->setInteraction(QCP::iRangeZoom, true);
-    ui->cp_ChartYear->setInteraction(QCP::iRangeDrag, true);
+    ui->lb_Airport->setText(airport);
 
-    pushButtonFalse();
+    printYear(chart_workload);
 
-    printchart(airport, date, workload);
-
-    WorkloadSchedule::exec();
+    WorkloadSchedule::open();
 }
 
 WorkloadSchedule::~WorkloadSchedule() {
 
-    delete graphMonth;
-    delete graphYear;
     delete ui;
 }
 
-void WorkloadSchedule::printchart(QString _airport, QDate _date, QVector<QDate> _workload) {
+void WorkloadSchedule::setWorkloadSchedule(QString _airport, QDate _date, QDate _date_max, QDate _date_min, QVector<QDate> chart_workload) {
 
     airport = _airport;
     date = _date;
-    workload  = _workload;
+    date_max = _date_max;
+    date_min = _date_min;
 
+    printYear(chart_workload);
+}
+
+void WorkloadSchedule::printYear(QVector<QDate> workload) {
+
+    qint32 year = date_max.year();
     bool month_bool = true;
-    QVector<double> graphic_x(MONTH, MONTH);
-    QVector<double> graphic_y(MONTH, 0);
-    QString date_year;
+
+    workload_month.clear();
+    workload_year.clear();;
+
+    workload_month.resize(MONTH);
+    workload_year.resize(MONTH, 0);
+
+    for (qsizetype i = 0; i < MONTH; i++) {
+
+        QDate date_graphic(date.year(), i + 1, 1);
+
+        workload_month[i].resize(date_graphic.addMonths(1).addDays(-1).day(), 0);
+    }
 
     for (qsizetype i = 0; i < workload.size(); i++) {
 
-        graphic_y[workload[i].month() - 1]++;
+        workload_year[workload[i].month() - 1]++;
+        workload_month[(workload[i].month() - 1)][(workload[i].day() - 1)]++;
     }
 
-    for (qsizetype i = 0; i < graphic_y.size(); i++) {
+    QVector<double> graphic_x(MONTH, MONTH);
+    QVector<double> graphic_y = workload_year;
 
-        graphic_x[i] = static_cast<double>(i + 1);
+    for (qsizetype i = 0; i < MONTH; i++) {
+
+        graphic_x[i] = static_cast<double>(i + 0.5);
 
         if (graphic_y[i] > 0) {
 
-            switch_month(i);
-
             if (month_bool) {
 
-                printmonth(i + 1);
+                month = i + 1;
+
+                printmonth(month);
 
                 month_bool = false;
             }
@@ -72,209 +87,189 @@ void WorkloadSchedule::printchart(QString _airport, QDate _date, QVector<QDate> 
         ui->cp_ChartYear->graph(i)->data()->clear();
     }
 
-    //ui->lb_Airport->setText(airport + " " +  date.toString("yyyy") + " " + date.toString("MMMM"));
+    ui->lw_YearUp->clear();
+    ui->lw_YearDown->clear();
+    ui->lw_MonthYearUp->clear();
+    ui->lw_MonthYearDown->clear();
 
-    graphYear->setWidth(9/(double)graphic_x.size());
+    while (year > date.year()) {
 
-    ui->cp_ChartYear->addGraph();
+        ui->lw_YearUp->addItem(QString::number(year));
+        ui->lw_MonthYearUp->addItem(QString::number(year));
+
+        year--;
+    }
+
+    ui->lb_Year->setText(QString::number(year));
+
+    year--;
+
+    while (year >= date_min.year()) {
+
+        ui->lw_YearDown->addItem(QString::number(year));
+        ui->lw_MonthYearDown->addItem(QString::number(year));
+
+        year--;
+    }
+
+    ui->lb_Year->setText(date.toString("yyyy"));
 
     graphYear->setData(graphic_x, graphic_y, true);
+    graphYear->setWidth(8/(double)graphic_x.size());
 
-    ui->cp_ChartYear->rescaleAxes();
+    graphYear->rescaleAxes();
+
+    ui->cp_ChartYear->xAxis->setLabel("Месяц");
+    ui->cp_ChartYear->yAxis->setLabel("Количество прилетов/вылетов");
+
+    ui->cp_ChartYear->xAxis->grid()->setSubGridVisible(true);
+
+    ui->cp_ChartYear->xAxis->setNumberFormat("f");
+    ui->cp_ChartYear->yAxis->setNumberFormat("f");
+    ui->cp_ChartYear->xAxis->setNumberPrecision(0);
+    ui->cp_ChartYear->yAxis->setNumberPrecision(0);
+    ui->cp_ChartYear->xAxis->setRange(0, 12);
+
     ui->cp_ChartYear->replot();
 }
 
-void WorkloadSchedule::clearGraphic() {
+void WorkloadSchedule::printmonth(qint32 month_print) {
 
-    for(int i = 0; i < ui->cp_ChartYear->graphCount(); i++) {
+    month_up.resize(MONTH);
+    month_down.resize(MONTH);
 
-        ui->cp_ChartYear->graph(i)->data()->clear();
+    QVector<double> graphic_x(workload_month[month_print - 1].size());
+    QVector<double> graphic_y = workload_month[month_print - 1];
+
+    for (qsizetype i = 0; i < workload_month[month_print - 1].size(); i++) {
+
+        graphic_x[i] = static_cast<double>(i + 1);
+    }
+
+    ui->lw_MonthUp->clear();
+    ui->lw_MonthDown->clear();
+
+
+    for (qsizetype i = 0, j = 0; i < month_print - 1; i++) {
+
+        if (workload_year[i] > 0) {
+
+            ui->lw_MonthUp->addItem(switch_month(i));
+
+            month_up[j] = i + 1;
+
+            j++;
+        }
+    }
+
+    ui->lb_MonthYear->setText(switch_month(month_print - 1) + " " + date.toString("yyyy"));
+
+
+    for (qsizetype i = month_print, j = 0; i < MONTH; i++) {
+
+        if (workload_year[i] > 0) {
+
+            ui->lw_MonthDown->addItem(switch_month(i));
+
+            month_down[j] = i + 1;
+
+            j++;
+        }
     }
 
     for(int i = 0; i < ui->cp_ChartMonth->graphCount(); i++) {
 
         ui->cp_ChartMonth->graph(i)->data()->clear();
     }
-
-}
-
-void WorkloadSchedule::printmonth(qint32 num) {
-
-    QDate date_chart;
-
-    if (num != 12) {
-
-        date_chart = QDate(date.year(), num + 1, 1);
-    }
-    else {
-
-        date_chart = QDate(date.year() + 1, 1, 1);
-    }
-
-    QDate end_date = date_chart.addDays(-1);
-    QVector<double> graphic_x(end_date.day(), end_date.day());
-    QVector<double> graphic_y(end_date.day(), 0);
-
-    for (qsizetype i = 0; i < workload.size(); i++) {
-
-        if (i < end_date.day()) {
-
-            graphic_x[i] = static_cast<double>(i + 1);
-        }
-
-        if (workload[i].month() == end_date.month()) {
-
-            graphic_y[workload[i].day() - 1]++;
-        }
-
-    }
-
-    for(int i = 0; i < ui->cp_ChartMonth->graphCount(); i++) {
-
-        ui->cp_ChartMonth->graph(i)->data()->clear();
-    }
-
-    ui->cp_ChartMonth->addGraph();
 
     graphMonth->setData(graphic_x, graphic_y, true);
 
-    ui->cp_ChartMonth->rescaleAxes();
-    ui->cp_ChartMonth->replot();
+    ui->cp_ChartMonth->xAxis->setLabel("Число месяца");
+    ui->cp_ChartMonth->yAxis->setLabel("Количество прилетов/вылетов");
 
-    ui->lb_Airport->setText(airport + " (" + end_date.toString("MMMM") + " " + end_date.toString("yyyy") + ")");
+    graphMonth->rescaleAxes();
+
+    ui->cp_ChartMonth->xAxis->setNumberFormat("f");
+    ui->cp_ChartMonth->yAxis->setNumberFormat("f");
+    ui->cp_ChartMonth->xAxis->setNumberPrecision(0);
+    ui->cp_ChartMonth->yAxis->setNumberPrecision(0);
+
+    ui->cp_ChartMonth->replot();
 }
 
-void WorkloadSchedule::switch_month(qint32 num) {
+QString WorkloadSchedule::switch_month(qint32 num) {
 
     switch(num) {
 
         case 0:
-            ui->pb_January->setEnabled(true);
-            break;
+            return "Январь";
         case 1:
-            ui->pb_February->setEnabled(true);
-            break;
+            return "Февраль";
         case 2:
-            ui->pb_March->setEnabled(true);
-            break;
+            return "Март";
         case 3:
-            ui->pb_April->setEnabled(true);
-            break;
+            return "Апрель";
         case 4:
-            ui->pb_May->setEnabled(true);
-            break;
+            return "Май";
         case 5:
-            ui->pb_June->setEnabled(true);
-            break;
+            return "Июнь";
         case 6:
-            ui->pb_July->setEnabled(true);
-            break;
+            return "Июль";
         case 7:
-            ui->pb_August->setEnabled(true);
-            break;
+            return "Август";
         case 8:
-            ui->pb_September->setEnabled(true);
-            break;
+            return "Сентябрь";
         case 9:
-            ui->pb_October->setEnabled(true);
-            break;
+            return "Октябрь";
         case 10:
-            ui->pb_November->setEnabled(true);
-            break;
+            return "Ноябрь";
         case 11:
-            ui->pb_December->setEnabled(true);
-            break;
+            return "Декабрь";
         default:
-            break;
+            return "-------";
         }
-}
-
-void WorkloadSchedule::pushButtonFalse() {
-
-    ui->pb_January->setEnabled(false);
-    ui->pb_February->setEnabled(false);
-    ui->pb_March->setEnabled(false);
-    ui->pb_April->setEnabled(false);
-    ui->pb_May->setEnabled(false);
-    ui->pb_June->setEnabled(false);
-    ui->pb_July->setEnabled(false);
-    ui->pb_August->setEnabled(false);
-    ui->pb_September->setEnabled(false);
-    ui->pb_October->setEnabled(false);
-    ui->pb_November->setEnabled(false);
-    ui->pb_December->setEnabled(false);
-}
-
-void WorkloadSchedule::closeEvent(QCloseEvent *event) {
-
-    pushButtonFalse();
-}
-
-
-void WorkloadSchedule::on_pb_January_clicked() {
-
-    printmonth(1);
-}
-
-void WorkloadSchedule::on_pb_February_clicked() {
-
-    printmonth(2);
-}
-
-void WorkloadSchedule::on_pb_March_clicked() {
-
-    printmonth(3);
-}
-
-void WorkloadSchedule::on_pb_April_clicked() {
-
-    printmonth(4);
-}
-
-void WorkloadSchedule::on_pb_May_clicked() {
-
-    printmonth(5);
-}
-
-void WorkloadSchedule::on_pb_June_clicked() {
-
-    printmonth(6);
-}
-
-void WorkloadSchedule::on_pb_July_clicked() {
-
-    printmonth(7);
-}
-
-void WorkloadSchedule::on_pb_August_clicked() {
-
-    printmonth(8);
-}
-
-void WorkloadSchedule::on_pb_September_clicked() {
-
-    printmonth(9);
-}
-
-void WorkloadSchedule::on_pb_October_clicked() {
-
-    printmonth(10);
-}
-
-void WorkloadSchedule::on_pb_November_clicked() {
-
-    printmonth(11);
-}
-
-void WorkloadSchedule::on_pb_December_clicked() {
-
-    printmonth(12);
 }
 
 void WorkloadSchedule::on_pb_Close_clicked() {
 
-    pushButtonFalse();
-
     WorkloadSchedule::close();
+}
+
+void WorkloadSchedule::on_lw_YearUp_itemClicked(QListWidgetItem *item) {
+
+    date = QDate(item->text().toInt(), 7, 1);
+
+    emit sig_selectChartWorkload(date);
+}
+
+void WorkloadSchedule::on_lw_YearDown_itemClicked(QListWidgetItem *item) {
+
+    date = QDate(item->text().toInt(), 7, 1);
+
+    emit sig_selectChartWorkload(date);
+}
+
+void WorkloadSchedule::on_lw_MonthYearUp_itemClicked(QListWidgetItem *item) {
+
+    date = QDate(item->text().toInt(), 7, 1);
+
+    emit sig_selectChartWorkload(date);
+}
+
+void WorkloadSchedule::on_lw_MonthYearDown_itemClicked(QListWidgetItem *item) {
+
+    date = QDate(item->text().toInt(), 7, 1);
+
+    emit sig_selectChartWorkload(date);
+}
+
+void WorkloadSchedule::on_lw_MonthUp_clicked(const QModelIndex &index) {
+
+    printmonth(month_up.value(index.row()));
+}
+
+void WorkloadSchedule::on_lw_MonthDown_clicked(const QModelIndex &index) {
+
+    printmonth(month_down.value(index.row()));
 }
 

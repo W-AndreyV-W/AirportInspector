@@ -28,14 +28,6 @@ set(PROJECT_SOURCES
         databaserequest.cpp
         databasequeryairports.h
         databasequeryairports.cpp
-        databasequerycalendar.h
-        databasequerycalendar.cpp
-        databasequeryday.h
-        databasequeryday.cpp
-        databasequerymanydays.h
-        databasequerymanydays.cpp
-        databasequerychart.h
-        databasequerychart.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QMessageBox>
-//#include <QtConcurrent>
 #include <QThread>
 #include <QCloseEvent>
 #include <QListWidget>
@@ -16,7 +15,8 @@
 #include "workloadschedule.h"
 #include "databaserequest.h"
 
-#define ZIRO_DATE 1900, 1, 1
+#define SETCOLUMN 3
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class AirportInspector; }
@@ -38,7 +38,8 @@ private slots:
     void printListAirports(QVector<QString> _airport_code, QVector<QString> _list_airports);
     void maxMinDate(QVector<QDate> max_min);
     void Scoreboard(QVector<QVector<QVector<QString>>> scoreboard);
-    void ChartWorkload(QVector<QDate> chart_workload);
+    void selectChartWorkload(QDate date);
+    void chartWorkload(QDate date, QVector<QDate> chart_workload);
 
     void on_calendarWidget_clicked(const QDate &date);
     void on_pb_AirportCongestion_clicked();
@@ -48,21 +49,21 @@ private:
 
     Ui::AirportInspector *ui;
 
-    WorkloadSchedule* waorkloadSchedule;
+    WorkloadSchedule* workloadSchedule = nullptr;
     DatabaseConnection* databaseConnection;
     DatabaseRequest* databaseRequest;
     QMessageBox* message;
     QTableWidgetItem* widgetItem;
 
-    QDate date;
+
+    QDate date_max;
+    QDate date_min;
+    QDate date_airport;
     QString airport;
     QVector<QString> airport_code;
     QVector<QString> airport_name;
-    bool close_event = true;
 
     void databaseConnectionError(DatabaseConnection& database);
-    void closeEvent (QCloseEvent *event) override;
-
 };
 
 #endif // AIRPORTINSPECTOR_H

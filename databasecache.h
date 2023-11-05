@@ -7,7 +7,6 @@
 #include <QDateTime>
 #include <QVector>
 #include <QMap>
-#include <QHash>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QtConcurrent>
@@ -37,14 +36,18 @@ public:
     ~DatabaseCache();
 
     void setAirportCalendar(QString _airport_code, QVector<QDate> _airport_calendar);
+    void setAirportChart(QString _airport_code,  QDate date, QVector<QDate> chart_workload);
     bool selectDatabase(QDate _date, QString _airport_code);
     bool selectCalendar(QString _airport_code);
-    bool boolManydays(QString _airport_code, QString date_manydays);
+    bool selectChart(QDate date, QString _airport_code);
+    bool boolManydays(QString _airport_code, QString date_txt);
+    bool boolChart(QString _airport_code, QString date_txt);
 
 signals:
 
     void sig_ScoreboardDay(QVector<QVector<QVector<QString>>> day_scoreboard);
     void sig_MaxMinDate(QVector<QDate> _airport_calendar);
+    void sig_AirportChart(QDate _date, QVector<QDate> chart_workload);
 
 public slots:
 
@@ -54,20 +57,30 @@ private:
 
     QMutex* mutex;
 
-    QDate date_set_scoreboard;
-    QDate select_date;
-    QString select_airport_code;
-    QString airport_code_set_calendar;
-    QString airport_code_set_scoreboard;
+    QString airport_max_min;
+    QVector<QDate> airport_data_set;
 
-    QVector<QDate> airport_calendar_set;
+    QString airport_chart_set;
+    QDate date_chart;
+    QVector<QDate> chart_data_set;
+
+    QString airport_scoreboard;
+    QDate date_scoreboard;
     QVector<QVector<QVector<QString>>> airport_scoreboard_set;
 
-    QMap<QString, QDateTime> airport_code;
-    QMap<QString, QVector<QDate>> airport_calendar;
+    QDate select_date;
+    QString select_airport_code;
+
+    QMap<QString, QDateTime> airport_code_calendar;
+    QMap<QDateTime, QVector<QDate>> airport_calendar;
+
+    QMap<QString, QMap<QString, QDateTime>> airport_code_chart;
+    QMap<QDateTime, QVector<QDate>> airport_chart;
+    QMap<QDateTime, QString> time_airport_chart;
+
     QMap<QString, QMap<QString, QDateTime>> airport_database;
     QMap<QDateTime, QVector<QVector<QVector<QString>>>> database_cache;
-    QMap<QDateTime, QString> time_airport_code;
+    QMap<QDateTime, QString> time_airport_database;
 
     void selectVector(QMap<QDateTime, QVector<QVector<QVector<QString>>>>& cache,
                       QVector<QVector<QVector<QString>>>& day, QDateTime time_db, qint8 index);

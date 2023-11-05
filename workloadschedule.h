@@ -2,6 +2,8 @@
 #define WORKLOADSCHEDULE_H
 
 #include <QDialog>
+#include <QString>
+#include <QVector>
 #include <QDate>
 
 #include "./library/qcustomplot.h"
@@ -18,27 +20,25 @@ class WorkloadSchedule : public QDialog {
 
 public:
 
-    explicit WorkloadSchedule(QString _airport, QDate _date, QVector<QDate> _workload, QWidget *parent = nullptr);
+    explicit WorkloadSchedule(QString _airport, QDate _date, QDate _date_max, QDate _date_min, QVector<QDate> chart_workload, QWidget *parent = nullptr);
     ~WorkloadSchedule();
 
-    void printchart(QString _airport, QDate _date, QVector<QDate> _workload);
-    void clearGraphic();
+    void printYear(QVector<QDate> _workload);
+    void setWorkloadSchedule(QString _airport, QDate _date, QDate _date_max, QDate _date_min, QVector<QDate> chart_workload);
+
+signals:
+
+    void sig_selectChartWorkload(QDate date);
 
 private slots:
 
-    void on_pb_January_clicked();
-    void on_pb_February_clicked();
-    void on_pb_March_clicked();
-    void on_pb_April_clicked();
-    void on_pb_May_clicked();
-    void on_pb_June_clicked();
-    void on_pb_July_clicked();
-    void on_pb_August_clicked();
-    void on_pb_September_clicked();
-    void on_pb_October_clicked();
-    void on_pb_November_clicked();
-    void on_pb_December_clicked();
     void on_pb_Close_clicked();
+    void on_lw_YearUp_itemClicked(QListWidgetItem *item);
+    void on_lw_YearDown_itemClicked(QListWidgetItem *item);
+    void on_lw_MonthYearUp_itemClicked(QListWidgetItem *item);
+    void on_lw_MonthYearDown_itemClicked(QListWidgetItem *item);
+    void on_lw_MonthUp_clicked(const QModelIndex &index);
+    void on_lw_MonthDown_clicked(const QModelIndex &index);
 
 private:
 
@@ -47,14 +47,18 @@ private:
     QCPGraph* graphMonth;
     QCPBars* graphYear;
 
+    qint32 month = 1;
+    QDate date_max;
+    QDate date_min;
     QDate date;
     QString airport;
-    QVector<QDate> workload;
+    QVector<qint32> month_up;
+    QVector<qint32> month_down;
+    QVector<double> workload_year;
+    QVector<QVector<double>> workload_month;
 
-    void printmonth(qint32 num);
-    void switch_month(qint32 num);
-    void pushButtonFalse();
-    void closeEvent (QCloseEvent *event) override;
+    void printmonth(qint32 month_print);
+    QString switch_month(qint32 num);
 };
 
 #endif // WORKLOADSCHEDULE_H

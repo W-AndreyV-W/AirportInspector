@@ -276,7 +276,7 @@
          </size>
         </property>
         <property name="text">
-         <string>Загруженность аэропорта </string>
+         <string>Статистика загруженности аэропорта</string>
         </property>
        </widget>
       </item>

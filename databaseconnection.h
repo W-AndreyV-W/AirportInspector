@@ -2,27 +2,14 @@
 #define DATABASECONNECTION_H
 
 #include <QObject>
-#include <QVector>
 #include <QString>
-//#include <QMultiMap>
 #include <QtConcurrent>
-//#include <QMap>
-//#include <QTableWidget>
-//#include <QAbstractTableModel>
 #include <QSqlDatabase>
 #include <QSqlQuery>
-#include <QDateTime>
-#include <QDate>
-//#include <QSqlRelationalTableModel>
-//#include <QSqlQueryModel>
-//#include <QSqlRecord>
 #include <QSqlError>
-
-#include <QDebug>
 
 
 #define POSTGRE_DRIVER "QPSQL"
-#define SETCOLUMN 3
 
 enum fieldsForConnect {
     hostName = 0,
@@ -31,6 +18,7 @@ enum fieldsForConnect {
     pass = 3,
     port = 4
 };
+
 
 class DatabaseConnection : public QObject
 {
